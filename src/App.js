@@ -1,17 +1,29 @@
 import React, { Component } from 'react';
 import FontAwesomeIcon from '@fortawesome/react-fontawesome'
-import { faCaretDown, faCaretUp } from '@fortawesome/fontawesome-free-solid'
+import { 
+	faCaretDown, 
+	faCaretUp , 
+	faCircleNotch, 
+	faTimes,
+	faSortAlphaDown,
+	faSortAlphaUp,
+	faSortAmountDown,
+	faSortAmountUp
+} from '@fortawesome/fontawesome-free-solid'
 import { sortBy } from 'lodash';
 import './App.css';
 
 
 const DEFAULT_QUERY = 'redux';
-const DEFAULT_HPP = '100';
+const DEFAULT_HPP = '20';
 const PATH_BASE = 'https://hn.algolia.com/api/v1';
 const PATH_SEARCH = '/search';
 const PARAM_SEARCH = 'query=';
+const PARAM_TAGS = 'tags='
 const PARAM_PAGE = 'page=';
 const PARAM_HPP = 'hitsPerPage=';
+
+const searchTags = "story"
 
 const SORTS = {
 	NONE: list => list,
@@ -77,8 +89,8 @@ class App extends Component {
 	fetchSearchTopStories(searchTerm, page = 0) {
 		this.setState({ isLoading: true });
 
-		fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}\
-		${page}&${PARAM_HPP}${DEFAULT_HPP}`)
+		fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_TAGS}${searchTags}
+		&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
 			.then(response => response.json())
 			.then(result => this.setSearchTopStories(result))
 			.catch(e => this.setState({error: e}));
@@ -164,6 +176,7 @@ class App extends Component {
 					<ButtonWithLoading 
 						isLoading={isLoading}
 						onClick={() => this.fetchSearchTopStories(searchKey, page + 1)}>
+						Load More 
 						<FontAwesomeIcon icon={faCaretDown} />
 					</ButtonWithLoading>
 				</div>
@@ -200,36 +213,42 @@ const Table = ({ list, sortKey, isSortReverse, onSort, onDismiss }) => {
 	return (
 		<div className="table">
 			<div className="table-header">
-				<span style={{ width: '40%'}}>
+				Sort By:
+				<span>
 					<Sort sortKey={'TITLE'} onSort={onSort} activeSortKey={sortKey}> Title </Sort>
 				</span>
-				<span style={{ width: '30%'}}>
+				<span>
 					<Sort sortKey={'AUTHOR'} onSort={onSort} activeSortKey={sortKey}> Author </Sort>
 				</span>
-				<span style={{ width: '10%'}}>
+				<span>
 					<Sort sortKey={'COMMENTS'} onSort={onSort} activeSortKey={sortKey}> Comments </Sort>
 				</span>
-				<span style={{ width: '10%'}}>
+				<span>
 					<Sort sortKey={'POINTS'} onSort={onSort} activeSortKey={sortKey}> Points </Sort>
-				</span>
-				<span style={{ width: '10%'}}>
-					Archive
 				</span>
 			</div>
 			{reverseSortedList.map(item =>
 				<div key={item.objectID} className="table-row">
-					<span style={{ width: '40%' }}>
-						<a href={item.url}>{item.title}</a>
+					<span className="row-points">{item.points}</span>
+					<span className="row-content">
+						<div className="row-title">
+							<a href={item.url}>{item.title}</a>
+						</div>
+						<div>
+							<span className="row-author">{item.author}</span> | 
+							<span className="row-comments"> 
+								 <a href={"https://news.ycombinator.com/item?id=" + item.objectID}> 
+									{ item.num_comments } comments
+								</a>
+							</span>
+						</div>
 					</span>
-					<span style={{ width: '30%' }}>{item.author}</span>
-					<span style={{ width: '10%' }}>{item.num_comments}</span>
-					<span style={{ width: '10%' }}>{item.points}</span>
-					<span style={{ width: '10%' }}>
+					<span className="row-button">
 						<button
 							onClick={() => onDismiss(item.objectID)}
 							className="button-inline"
 						>
-							Dismiss Me
+							<FontAwesomeIcon icon={faTimes}/>
 						</button>
 					</span>
 				</div>)
@@ -248,6 +267,7 @@ const Sort = ({ sortKey, activeSortKey, onSort, children }) => {
 	return (
 		<Button onClick={() => onSort(sortKey)} className={sortClass.join(' ')}>
 			{children}
+			<FontAwesomeIcon icon={faSortAlphaDown}/>
 		</Button>
 	);
 }
@@ -267,7 +287,9 @@ const withLoading = (Component) => ({isLoading, ...rest }) =>
 		: <Component { ...rest } />
 
 const Loading = () => 
-	<div>Loading...</div>
+	<div className="loading-icon">
+		<FontAwesomeIcon icon={faCircleNotch} rotate={90} className="fa-spin fa-10x"/>
+	</div>
 
 const ButtonWithLoading = withLoading(Button)
 

@@ -1,17 +1,46 @@
 .page {
-  margin: 20px;
+  margin: 20px 1vw;
+  position: relative;
+}
+
+@media screen and (min-width: 800px) {
+  .page {
+    margin: 20px 10vw;
+  }
 }
 
 .interactions {
-  text-align: center;
+  text-align: left;
+}
+
+
+.button-inline { 
+  border-width: 0; 
+  background: transparent; 
+  color: inherit; 
+  text-align: inherit; 
+  -webkit-font-smoothing: inherit; 
+  padding: 0; 
+  font-size: inherit; 
+  cursor: pointer; }
+
+.button-active { 
+  border-radius: 0; 
+  border-bottom: 1px solid #38BB6C; 
 }
 
 .table-header { 
   display: flex; 
-  line-height: 24px; 
-  font-size: 16px; 
-  padding: 0 10px; 
-  justify-content: space-between; 
+  position: absolute;
+  width: 50%;
+  height: 13px;
+  right: 0px;
+  top: 0px;
+  font-size: 12px; 
+  padding: 10px 0px; 
+  justify-content: flex-end; 
+  align-items: flex-end;
+  /*border: 1px dotted red*/
 }
 
 .table-empty { 
@@ -20,8 +49,75 @@
   font-size: 16px; 
 }
 
-.table-row { display: flex; line-height: 24px; white-space: nowrap; margin: 10px 0; padding: 10px; background: #ffffff; border: 1px solid #e3e3e3; }
-.table-header > span { overflow: hidden; text-overflow: ellipsis; padding: 0 5px; }
-.table-row > span { overflow: hidden; text-overflow: ellipsis; padding: 0 5px; }
-.button-inline { border-width: 0; background: transparent; color: inherit; text-align: inherit; -webkit-font-smoothing: inherit; padding: 0; font-size: inherit; cursor: pointer; }
-.button-active { border-radius: 0; border-bottom: 1px solid #38BB6C; }
+.table-row { 
+  display: flex; 
+  line-height: 24px; 
+  white-space: nowrap; 
+  margin: 0 0; 
+  padding: 5px 0; 
+  background: #ffffff; 
+  align-items: center;
+  /*border: 1px solid #e3e3e3; */
+  border-bottom: 1px solid rgb(245, 245, 245); 
+}
+
+.row-points {
+  width: 80px;
+  font-size: 24px;
+  text-align: center;
+}
+
+.row-content {
+  width: 100%;
+  font-size: 12px;
+  line-height: 18px; 
+}
+
+.row-title {
+  font-size: 16px;
+  line-height: 28px; 
+}
+
+.row-comments {
+  margin-left: 3px;
+}
+
+.row-button {
+  width: 40px;
+  font-size: 10px;
+  text-align: center;
+  color: #DDD;
+}
+
+.row-button button{
+  height: 50px;
+  width: 40px;
+}
+
+.row-button button:hover{
+  color: rgb(247, 41, 103)
+}
+
+.table-header > span { 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+  padding: 0 10px; 
+}
+
+.table-row > span { 
+  overflow: hidden; 
+  padding: 0 5px; 
+}
+
+
+.loading-icon {
+  padding-top: 200px;
+  text-align: center;
+  color: rgb(167, 200, 216)
+}
+
+/*
+.row-content {
+  border: 1px dotted red
+}
+*/

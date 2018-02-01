@@ -3,9 +3,20 @@
   position: relative;
 }
 
+.table {
+  margin-top: 40px;
+  position: relative;
+}
+
 @media screen and (min-width: 800px) {
   .page {
     margin: 20px 10vw;
+  }
+}
+
+@media screen and (min-width: 650px) {
+  .table {
+    margin-top: 0px;
   }
 }
 
@@ -32,10 +43,10 @@
 .table-header { 
   display: flex; 
   position: absolute;
-  width: 50%;
+  width: 350px;
   height: 13px;
   right: 0px;
-  top: 0px;
+  top: -34px;
   font-size: 12px; 
   padding: 10px 0px; 
   justify-content: flex-end; 
@@ -76,6 +87,10 @@
 .row-title {
   font-size: 16px;
   line-height: 28px; 
+}
+
+.row-title-highlight {
+  font-weight: bold;
 }
 
 .row-comments {

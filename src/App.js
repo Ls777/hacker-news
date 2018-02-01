@@ -165,6 +165,7 @@ class App extends Component {
 						? <p>Something went wrong =o</p>
 						: <Table 
 							list={list}
+							searchKey={searchKey}
 							sortKey={sortKey}
 							isSortReverse={isSortReverse}
 							onSort={this.onSort}
@@ -204,11 +205,12 @@ const Search = ({ value, onChange, onSubmit, children }) =>
 
 
 
-const Table = ({ list, sortKey, isSortReverse, onSort, onDismiss }) => {
+const Table = ({ list, searchKey, sortKey, isSortReverse, onSort, onDismiss }) => {
 	const sortedList = SORTS[sortKey](list);
 	const reverseSortedList = isSortReverse
 		? sortedList.reverse()
 		: sortedList;
+
 
 	return (
 		<div className="table">
@@ -232,7 +234,12 @@ const Table = ({ list, sortKey, isSortReverse, onSort, onDismiss }) => {
 					<span className="row-points">{item.points}</span>
 					<span className="row-content">
 						<div className="row-title">
-							<a href={item.url}>{item.title}</a>
+							<a href={item.url}>
+								<HighlightTitle
+									 searchKey={searchKey}
+									 title={item.title}
+								/>
+							</a>
 						</div>
 						<div>
 							<span className="row-author">{item.author}</span> | 
@@ -255,6 +262,22 @@ const Table = ({ list, sortKey, isSortReverse, onSort, onDismiss }) => {
 			}
 		</div>
 	);
+}
+
+const HighlightTitle = ({searchKey, title}) => {
+	const idx = title.toLowerCase().indexOf(searchKey.toLowerCase());
+	
+	if (idx > -1) {
+		return (
+		<span>
+			{title.slice(0, idx)}
+			<span className="row-title-highlight">
+				{title.slice(idx, idx + searchKey.length)}
+			</span>
+			{title.slice(idx + searchKey.length)}
+		</span>)
+	}
+	return title
 }
 	
 const Sort = ({ sortKey, activeSortKey, onSort, children }) => {

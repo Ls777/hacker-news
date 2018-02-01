@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import FontAwesomeIcon from '@fortawesome/react-fontawesome'
+import { faCaretDown, faCaretUp } from '@fortawesome/fontawesome-free-solid'
 import { sortBy } from 'lodash';
 import './App.css';
 
@@ -162,7 +164,7 @@ class App extends Component {
 					<ButtonWithLoading 
 						isLoading={isLoading}
 						onClick={() => this.fetchSearchTopStories(searchKey, page + 1)}>
-						More
+						<FontAwesomeIcon icon={faCaretDown} />
 					</ButtonWithLoading>
 				</div>
 			</div>

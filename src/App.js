@@ -1,12 +1,11 @@
 import React, { Component } from 'react';
 import FontAwesomeIcon from '@fortawesome/react-fontawesome'
 import { 
+	faSearch,
 	faCaretDown, 
 	faCaretUp , 
 	faCircleNotch, 
 	faTimes,
-	faSortAlphaDown,
-	faSortAlphaUp,
 	faSortAmountDown,
 	faSortAmountUp
 } from '@fortawesome/fontawesome-free-solid'
@@ -183,7 +182,7 @@ class App extends Component {
 						onChange={this.onSearchChange}
 						onSubmit={this.onSearchSubmit}
 						homeFunc={this.fetchFrontPage}
-					> Search </Search>
+					> Search <FontAwesomeIcon icon={faSearch} transform="right-2"/></Search>
 					{ error
 						? <p>Something went wrong =o</p>
 						: <Table 
@@ -218,7 +217,11 @@ class App extends Component {
 const Search = ({ value, onChange, onSubmit, children, homeFunc }) =>
 	<div className="search-form">
 		<button className="home-button" onClick={() => homeFunc('zzz', 'front_page', 0)}>
-			<FontAwesomeIcon icon={faHackerNews} className="fa-3x"/>
+			<FontAwesomeIcon 
+				icon={faHackerNews} 
+				className="fa-3x"
+				transform="up-1"
+			/>
 		</button>
 		<form onSubmit={onSubmit} className="search-form">
 			<input 
@@ -244,18 +247,7 @@ const Table = ({ list, searchKey, sortKey, isSortReverse, onSort, onDismiss }) =
 
 	return (
 		<div className="table">
-			<div className="table-header">
-				Sort By:
-				<span>
-					<Sort sortKey={'DATE'} onSort={onSort} activeSortKey={sortKey}> Date </Sort>
-				</span>
-				<span>
-					<Sort sortKey={'COMMENTS'} onSort={onSort} activeSortKey={sortKey}> Comments </Sort>
-				</span>
-				<span>
-					<Sort sortKey={'POINTS'} onSort={onSort} activeSortKey={sortKey}> Points </Sort>
-				</span>
-			</div>
+			<TableHeader onSort={onSort} sortKey={sortKey} isSortReverse={isSortReverse}/>
 			{reverseSortedList.map(item =>
 				<div key={item.objectID} className="table-row">
 					<span className="row-points">{item.points}</span>
@@ -292,6 +284,38 @@ const Table = ({ list, searchKey, sortKey, isSortReverse, onSort, onDismiss }) =
 	);
 }
 
+const TableHeader = ({onSort, sortKey, isSortReverse}) => 
+	<div className="table-header">
+	<span>Sort By:   </span>
+	<span>
+		<Sort 
+			sortKey={'DATE'} 
+			onSort={onSort} 
+			activeSortKey={sortKey}
+			isSortReverse={isSortReverse}>
+			Date 
+		</Sort>
+	</span>
+	<span>
+		<Sort 
+			sortKey={'COMMENTS'} 
+			onSort={onSort} 
+			activeSortKey={sortKey}
+			isSortReverse={isSortReverse}>
+			Comments 
+		</Sort>
+	</span>
+	<span>
+		<Sort 
+			sortKey={'POINTS'} 
+			onSort={onSort} 
+			activeSortKey={sortKey}
+			isSortReverse={isSortReverse}>
+			Points 
+		</Sort>
+	</span>
+	</div>
+
 const HighlightTitle = ({searchKey, title}) => {
 	const idx = title.toLowerCase().indexOf(searchKey.toLowerCase());
 	
@@ -308,17 +332,21 @@ const HighlightTitle = ({searchKey, title}) => {
 	return title
 }
 	
-const Sort = ({ sortKey, activeSortKey, onSort, children }) => {
+const Sort = ({ sortKey, activeSortKey, onSort, isSortReverse, children }) => {
 	const sortClass = ['button-inline'];
+	const iconClass = ['sort-icon'];
+	const icon = isSortReverse ? "sort-amount-up" : "sort-amount-down"
+
 
 	if(sortKey === activeSortKey) {
 		sortClass.push('button-active');
+		iconClass.push('sort-icon-active')
 	}
 
 	return (
 		<Button onClick={() => onSort(sortKey)} className={sortClass.join(' ')}>
 			{children}
-			<FontAwesomeIcon icon={faSortAlphaDown}/>
+			<FontAwesomeIcon icon={icon} className={iconClass.join(' ')}/>
 		</Button>
 	);
 }

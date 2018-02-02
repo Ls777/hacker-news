@@ -10,12 +10,15 @@ import {
 	faSortAmountDown,
 	faSortAmountUp
 } from '@fortawesome/fontawesome-free-solid'
+import { faHackerNews } from '@fortawesome/fontawesome-free-brands'
+import moment from 'moment'
 import { sortBy } from 'lodash';
 import './App.css';
 
 
 const DEFAULT_QUERY = 'redux';
-const DEFAULT_HPP = '20';
+const DEFAULT_TAG = 'story'
+const DEFAULT_HPP = '30';
 const PATH_BASE = 'https://hn.algolia.com/api/v1';
 const PATH_SEARCH = '/search';
 const PARAM_SEARCH = 'query=';
@@ -23,12 +26,9 @@ const PARAM_TAGS = 'tags='
 const PARAM_PAGE = 'page=';
 const PARAM_HPP = 'hitsPerPage=';
 
-const searchTags = "story"
-
 const SORTS = {
 	NONE: list => list,
-	TITLE: list => sortBy(list, 'title'),
-	AUTHOR: list => sortBy(list, 'author'),
+	DATE: list => sortBy(list, 'created_at').reverse(),
 	COMMENTS: list => sortBy(list, 'num_comments').reverse(),
 	POINTS: list => sortBy(list, 'points').reverse(),
 };
@@ -42,6 +42,7 @@ class App extends Component {
 		this.state = {
 			results: null,
 			searchTerm: DEFAULT_QUERY,
+			searchTags: DEFAULT_TAG,
 			searchKey: '',
 			error: null,
 			isLoading: false,
@@ -52,6 +53,7 @@ class App extends Component {
 		this.needsToSearchTopStories = this. needsToSearchTopStories.bind(this);
 		this.setSearchTopStories = this.setSearchTopStories.bind(this);
 		this.fetchSearchTopStories = this.fetchSearchTopStories.bind(this);
+		this.fetchFrontPage = this.fetchFrontPage.bind(this);
 		this.onDismiss = this.onDismiss.bind(this);
 		this.onSearchChange = this.onSearchChange.bind(this);
 		this.onSearchSubmit = this.onSearchSubmit.bind(this);
@@ -68,7 +70,7 @@ class App extends Component {
 	}
 
 	setSearchTopStories(result) {
-		const {hits, page } = result;
+		const { hits, page, nbPages } = result;
 		const { searchKey, results } = this.state;
 
 		const oldHits = results && results[searchKey]
@@ -80,14 +82,14 @@ class App extends Component {
 		this.setState({ 
 			results : {
 				...results,
-				[searchKey] : { hits: updatedHits, page }
+				[searchKey] : { hits: updatedHits, page, nbPages },
 			},
 			isLoading: false
 		});
 	}
 
-	fetchSearchTopStories(searchTerm, page = 0) {
-		this.setState({ isLoading: true });
+	fetchSearchTopStories(searchTerm, searchTags, page = 0) {
+		this.setState({ isLoading: true, sortKey: 'NONE'});
 
 		fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_TAGS}${searchTags}
 		&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
@@ -95,11 +97,15 @@ class App extends Component {
 			.then(result => this.setSearchTopStories(result))
 			.catch(e => this.setState({error: e}));
 	}
-	componentDidMount() {
-		const { searchTerm } = this.state;
-		this.setState({searchKey: searchTerm});
-		this.fetchSearchTopStories(searchTerm);
+
+	fetchFrontPage() {
+		this.setState({searchKey: ""});
 	}
+
+	componentDidMount() {
+		this.fetchSearchTopStories('', 'front_page');
+	}
+
 
 	onDismiss(id) { 
 		const {searchKey, results} = this.state;
@@ -119,10 +125,10 @@ class App extends Component {
 	}
 
 	onSearchSubmit(event) {
-		const {searchTerm} = this.state;
+		const {searchTerm, searchTags} = this.state;
 		this.setState({ searchKey: searchTerm });
 		if (this.needsToSearchTopStories(searchTerm)) {
-			this.fetchSearchTopStories(searchTerm);
+			this.fetchSearchTopStories(searchTerm, searchTags);
 		}
 		event.preventDefault();
 	}
@@ -132,6 +138,7 @@ class App extends Component {
 	render() {
 		const { 
 			searchTerm, 
+			searchTags,
 			results, 
 			searchKey, 
 			error, 
@@ -152,6 +159,21 @@ class App extends Component {
 			results[searchKey].hits 
 		) || [];
 
+		const morePages = ( 
+			results && 
+			results[searchKey] &&
+			results[searchKey].page >= results[searchKey].nbPages - 1
+		) || false;
+
+		const debugpages = ( 
+			results && 
+			results[searchKey] &&
+			results[searchKey].page + " - " + results[searchKey].nbPages
+		) || false;
+
+		console.log(debugpages)
+		console.log(morePages)
+
 
 		return (
 			<div className="page">
@@ -160,6 +182,7 @@ class App extends Component {
 						value={searchTerm}
 						onChange={this.onSearchChange}
 						onSubmit={this.onSearchSubmit}
+						homeFunc={this.fetchFrontPage}
 					> Search </Search>
 					{ error
 						? <p>Something went wrong =o</p>
@@ -174,12 +197,14 @@ class App extends Component {
 					}
 				</div>
 				<div className="interactions">
-					<ButtonWithLoading 
-						isLoading={isLoading}
-						onClick={() => this.fetchSearchTopStories(searchKey, page + 1)}>
-						Load More 
-						<FontAwesomeIcon icon={faCaretDown} />
-					</ButtonWithLoading>
+					{ !morePages &&
+						<ButtonWithLoading 
+							isLoading={isLoading}
+							onClick={() => this.fetchSearchTopStories(searchKey, searchTags, page + 1)}>
+							Load More 
+							<FontAwesomeIcon icon="caret-down" />
+						</ButtonWithLoading>
+					}
 				</div>
 			</div>
 		);
@@ -190,17 +215,22 @@ class App extends Component {
 
 
 
-const Search = ({ value, onChange, onSubmit, children }) =>
-	<form onSubmit={onSubmit}>
-		<input 
-			type="text" 
-			value={value}
-			onChange={onChange}
-		/>
-		<button type="submit">
-			{children}
+const Search = ({ value, onChange, onSubmit, children, homeFunc }) =>
+	<div className="search-form">
+		<button className="home-button" onClick={() => homeFunc('zzz', 'front_page', 0)}>
+			<FontAwesomeIcon icon={faHackerNews} className="fa-3x"/>
 		</button>
-	</form>
+		<form onSubmit={onSubmit} className="search-form">
+			<input 
+				type="text" 
+				value={value}
+				onChange={onChange}
+			/>
+			<button type="submit">
+				{children}
+			</button>
+		</form>
+	</div>
 	
 
 
@@ -217,10 +247,7 @@ const Table = ({ list, searchKey, sortKey, isSortReverse, onSort, onDismiss }) =
 			<div className="table-header">
 				Sort By:
 				<span>
-					<Sort sortKey={'TITLE'} onSort={onSort} activeSortKey={sortKey}> Title </Sort>
-				</span>
-				<span>
-					<Sort sortKey={'AUTHOR'} onSort={onSort} activeSortKey={sortKey}> Author </Sort>
+					<Sort sortKey={'DATE'} onSort={onSort} activeSortKey={sortKey}> Date </Sort>
 				</span>
 				<span>
 					<Sort sortKey={'COMMENTS'} onSort={onSort} activeSortKey={sortKey}> Comments </Sort>
@@ -243,6 +270,7 @@ const Table = ({ list, searchKey, sortKey, isSortReverse, onSort, onDismiss }) =
 						</div>
 						<div>
 							<span className="row-author">{item.author}</span> | 
+							<span className="row-date">{ moment(item.created_at).fromNow()}</span> |
 							<span className="row-comments"> 
 								 <a href={"https://news.ycombinator.com/item?id=" + item.objectID}> 
 									{ item.num_comments } comments

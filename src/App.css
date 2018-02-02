@@ -69,7 +69,7 @@
   background: #ffffff; 
   align-items: center;
   /*border: 1px solid #e3e3e3; */
-  border-bottom: 1px solid rgb(245, 245, 245); 
+  border-top: 1px solid rgb(245, 245, 245); 
 }
 
 .row-points {
@@ -93,8 +93,12 @@
   font-weight: bold;
 }
 
-.row-comments {
-  margin-left: 3px;
+.row-comments, .row-date {
+  margin-left: 4px;
+}
+
+.row-date {
+  font-style: italic
 }
 
 .row-button {
@@ -130,6 +134,21 @@
   text-align: center;
   color: rgb(167, 200, 216)
 }
+
+.search-form {
+  height: 34px;
+  padding: 0px;
+  display:flex;
+  color:red;
+  align-items: center;
+}
+
+.home-button{
+  margin: 0px;
+  color: #ff742b;
+  padding: 0px;
+}
+
 
 /*
 .row-content {

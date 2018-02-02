@@ -42,7 +42,7 @@ button {
 }
 
 button:hover {
-  color: rgb(55, 194, 85);
+  color: rgb(67, 216, 99);
 }
 
 button:focus {outline:0;}

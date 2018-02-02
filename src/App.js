@@ -2,8 +2,7 @@ import React, { Component } from 'react';
 import FontAwesomeIcon from '@fortawesome/react-fontawesome'
 import { 
 	faSearch,
-	faCaretDown, 
-	faCaretUp , 
+	faSignInAlt , 
 	faCircleNotch, 
 	faTimes,
 	faSortAmountDown,
@@ -17,6 +16,7 @@ import './App.css';
 
 const DEFAULT_QUERY = 'redux';
 const DEFAULT_TAG = 'story'
+const START_TAG = "front_page"
 const DEFAULT_HPP = '30';
 const PATH_BASE = 'https://hn.algolia.com/api/v1';
 const PATH_SEARCH = '/search';
@@ -40,8 +40,7 @@ class App extends Component {
 
 		this.state = {
 			results: null,
-			searchTerm: DEFAULT_QUERY,
-			searchTags: DEFAULT_TAG,
+			searchTerm: '',
 			searchKey: '',
 			error: null,
 			isLoading: false,
@@ -69,7 +68,7 @@ class App extends Component {
 	}
 
 	setSearchTopStories(result) {
-		const { hits, page, nbPages } = result;
+		const { hits, page, nbPages, nbHits } = result;
 		const { searchKey, results } = this.state;
 
 		const oldHits = results && results[searchKey]
@@ -81,40 +80,55 @@ class App extends Component {
 		this.setState({ 
 			results : {
 				...results,
-				[searchKey] : { hits: updatedHits, page, nbPages },
+				[searchKey] : { hits: updatedHits, page, nbPages, nbHits },
 			},
 			isLoading: false
 		});
 	}
 
-	fetchSearchTopStories(searchTerm, searchTags, page = 0) {
+	fetchSearchTopStories(searchTerm, page = 0) {
 		this.setState({ isLoading: true, sortKey: 'NONE'});
 
-		fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_TAGS}${searchTags}
-		&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
+		let pathSearch = PATH_SEARCH;
+		let searchQuery = `${PARAM_SEARCH}${searchTerm}&`
+		const searchTags = [DEFAULT_TAG]
+
+		console.log(moment().subtract(3, 'days').format("X"));
+
+		if (searchTerm == '') {
+			pathSearch += "_by_date"
+			searchQuery = `numericFilters=created_at_i>${moment().subtract(3, 'days').format("X")}`
+			searchTags.push("front_page")
+		}
+
+		console.log(`${PATH_BASE}${PATH_SEARCH}?${PARAM_TAGS}${searchTags.join(",")}&${searchQuery}&
+		${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
+
+		fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_TAGS}${searchTags.join(",")}&${searchQuery}&
+		${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
 			.then(response => response.json())
 			.then(result => this.setSearchTopStories(result))
 			.catch(e => this.setState({error: e}));
 	}
 
 	fetchFrontPage() {
-		this.setState({searchKey: ""});
+		this.setState({searchTerm: "", searchKey: ""});
 	}
 
 	componentDidMount() {
-		this.fetchSearchTopStories('', 'front_page');
+		this.fetchSearchTopStories('');
 	}
 
 
 	onDismiss(id) { 
 		const {searchKey, results} = this.state;
-		const {hits, page} = results[searchKey];
+		const {hits, page, nbPages, nbHits} = results[searchKey];
 
 		const updatedHits = hits.filter(item => item.objectID !== id);
 		this.setState({ 
 			results: {
 				...results, 
-				[searchKey]: {hits: updatedHits, page} 
+				[searchKey]: {hits: updatedHits, page, nbPages, nbHits} 
 			} 
 		});
 	}
@@ -124,10 +138,10 @@ class App extends Component {
 	}
 
 	onSearchSubmit(event) {
-		const {searchTerm, searchTags} = this.state;
+		const {searchTerm} = this.state;
 		this.setState({ searchKey: searchTerm });
 		if (this.needsToSearchTopStories(searchTerm)) {
-			this.fetchSearchTopStories(searchTerm, searchTags);
+			this.fetchSearchTopStories(searchTerm);
 		}
 		event.preventDefault();
 	}
@@ -137,7 +151,6 @@ class App extends Component {
 	render() {
 		const { 
 			searchTerm, 
-			searchTags,
 			results, 
 			searchKey, 
 			error, 
@@ -158,20 +171,21 @@ class App extends Component {
 			results[searchKey].hits 
 		) || [];
 
+		const nbHits = ( 
+			results && 
+			results[searchKey] &&
+			results[searchKey].nbHits 
+		) || 0;
+
 		const morePages = ( 
 			results && 
 			results[searchKey] &&
 			results[searchKey].page >= results[searchKey].nbPages - 1
 		) || false;
 
-		const debugpages = ( 
-			results && 
-			results[searchKey] &&
-			results[searchKey].page + " - " + results[searchKey].nbPages
-		) || false;
 
-		console.log(debugpages)
-		console.log(morePages)
+
+
 
 
 		return (
@@ -196,14 +210,22 @@ class App extends Component {
 					}
 				</div>
 				<div className="interactions">
+					<div className="message-footer">
+					{ !isLoading &&
+						<p>{nbHits} results found.</p>
+					}
 					{ !morePages &&
 						<ButtonWithLoading 
+							className="load-more-button"
 							isLoading={isLoading}
-							onClick={() => this.fetchSearchTopStories(searchKey, searchTags, page + 1)}>
+							onClick={() => this.fetchSearchTopStories(searchKey, page + 1)}>
 							Load More 
-							<FontAwesomeIcon icon="caret-down" />
+							<div>
+								<FontAwesomeIcon icon="sign-in-alt" className="fa-3x" transform="down-3 rotate-90" />
+							</div>
 						</ButtonWithLoading>
 					}
+					</div>
 				</div>
 			</div>
 		);
@@ -215,7 +237,7 @@ class App extends Component {
 
 
 const Search = ({ value, onChange, onSubmit, children, homeFunc }) =>
-	<div className="search-form">
+	<div className="search-form-container">
 		<button className="home-button" onClick={() => homeFunc('zzz', 'front_page', 0)}>
 			<FontAwesomeIcon 
 				icon={faHackerNews} 

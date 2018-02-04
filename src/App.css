@@ -212,7 +212,7 @@
 
 .message-footer {
   /*display: flex;*/
-  margin-top: 100px;
+  margin-top: 50px;
   margin-bottom: 120px;
   text-align: center;
   justify-content: center;
@@ -228,6 +228,7 @@
 
 
 .loading-icon {
+  margin-top: 70px;
   color: rgb(167, 200, 216)
 }
 
